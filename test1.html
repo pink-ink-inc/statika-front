@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>Тест</title>
+	<meta charset="windows-1251" />
+	
+	<script src="http://code.jquery.com/jquery-latest.js"></script>
+	
+<style>
+body {
+padding:20px;
+}
+.button {
+width:200px;
+height:30px;
+margin-bottom:20px;
+padding-top:10px;
+background:green;
+color:#fff;
+font-weight:bold;
+text-align:center;
+cursor:pointer;
+}
+.result {
+padding:10px;
+width:400px;
+height:150px;
+margin-bottom:20px;
+background:#eee;
+text-align:left;
+}
+.forms {
+padding-bottom:20px;
+}
+</style>
+
+<script>
+
+$(document).on('click','#button1', function(){
+  $.get("http://api-amjad.gis.to/api/test", {  },
+  function(data){
+    document.getElementById("result1").innerHTML = data;
+  });
+});
+
+$(document).on('click','#button2', function(){
+  var inp1 = $("#input2_1").val();
+  var inp2 = $("#input2_2").val();
+  $.get("http://api-amjad.gis.to/api/echo?"+inp1+"="+inp2, function(data){
+    document.getElementById("result2").innerHTML = data;
+  });
+});
+
+
+$(document).on('click','#button3', function(){
+  var inp = $("#input3_1").val();
+  $.ajax({
+    type: "POST",
+    url: "http://api-amjad.gis.to/api/echo",
+    data: inp,
+    success: function(data){
+       document.getElementById("result3").innerHTML = data;
+    },
+    contentType: "application/json",
+  });
+
+});
+
+$(document).on('click','#button3_1', function(){
+  var inp1 = $("#input3_1_1").val();
+  var inp2 = $("#input3_1_2").val();
+  var obj = [inp1,inp2];
+  obj = JSON.stringify(obj);
+  $.ajax({
+    type: "POST",
+    url: "http://api-amjad.gis.to/api/echo-json",
+    data: obj,
+    success: function(data){
+       document.getElementById("result3_1").innerHTML = data;
+    },
+    contentType: "application/json",
+  });
+
+});
+
+</script>
+
+</head>
+	
+<body>
+
+
+
+<h1>Test 1 - GET</h1>
+
+<div id="button1" class="button">
+	GET
+</div>
+
+<div id="result1" class="result">
+
+</div>
+
+
+
+<h1>Test 2 - GET</h1>
+
+<div id="button2" class="button">
+	GET
+</div>
+
+<div class="forms">
+	<input id="input2_1"></input>
+	<input id="input2_2"></input>
+</div>
+
+<div id="result2" class="result">
+
+</div>
+
+
+<h1>Test 3 - POST</h1>
+
+<div id="button3" class="button">
+	POST
+</div>
+
+<div class="forms">
+	<textarea id="input3_1"></textarea>
+</div>
+
+<div id="result3" class="result">
+
+</div>
+
+<h1>Test 3_1 - POST</h1>
+
+<div id="button3_1" class="button">
+  POST
+</div>
+
+<div class="forms">
+  <textarea id="input3_1_1"></textarea>
+</div>
+<div class="forms">
+  <textarea id="input3_1_2"></textarea>
+</div>
+
+<div id="result3_1" class="result">
+
+</div>
+	
+	
+</body>
+</html>

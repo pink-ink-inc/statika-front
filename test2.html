@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<title>API</title>
+	<meta charset="windows-1251" />
+	
+	<script src="http://code.jquery.com/jquery-latest.js"></script>
+	
+<style>
+body {
+padding:20px;
+}
+.button {
+width:200px;
+height:30px;
+margin-bottom:20px;
+padding-top:10px;
+background:green;
+color:#fff;
+font-weight:bold;
+text-align:center;
+cursor:pointer;
+}
+.result {
+padding:10px;
+width:400px;
+min-height:150px;
+height: auto;
+margin-bottom:20px;
+background:#eee;
+text-align:left;
+white-space: pre-wrap;
+}
+.forms {
+padding-bottom:20px;
+}
+</style>
+
+<script>
+
+
+$(document).on('click','#button4', function(){
+  var inp1 = "http://api-amjad.gis.to/api/add/"+$("#input4_1").val();
+  var inp2 = $("#input4_2").val();
+  var inp3 = $("#input4_3").val();
+
+  if (inp2 != "string") {
+    alert("not a string");
+    inp3 = JSON.parse(inp3);
+    alert(inp3);
+  };
+
+  var obj = {
+        "kind": inp2, 
+        "value": inp3,
+  };
+  obj = JSON.stringify(obj);
+
+  $.ajax({
+    type: "POST",
+    url: inp1,
+    data: obj,
+    success: function(data){
+       document.getElementById("result4").innerHTML = data;
+    },
+    contentType: "application/json",
+  });
+
+});
+
+$(document).on('click','#button5', function(){
+  var inp = $("#input5_1").val();
+  $.get("http://api-amjad.gis.to/api/repr/"+inp, function(data){
+    document.getElementById("result5").innerHTML = data;
+  });
+});
+
+$(document).on('click','#button6', function(){
+  var inp = $("#input6_1").val();
+  $.get("http://api-amjad.gis.to/api/keys/"+inp, function(data){
+    document.getElementById("result6").innerHTML = data;
+  });
+});
+
+
+$(document).on('click','#button7', function(){
+  var inp = $("#input7_1").val();
+  $.ajax({
+    type: "POST",
+    url: "http://api-amjad.gis.to/api/del/"+inp,
+    success: function(data){
+       document.getElementById("result7").innerHTML = data;
+    },
+    contentType: "application/json",
+  });
+});
+
+
+$(document).on('click','#button8', function(){
+  var inp = $("#input8_1").val();
+  $.get("http://api-amjad.gis.to/api/render/"+inp, function(data){
+    document.getElementById("result8").innerHTML = data;
+  });
+});
+
+</script>
+
+</head>
+	
+<body>
+
+
+
+
+<h1>Test 4 - ADD KEY</h1>
+
+<div id="button4" class="button">
+	POST
+</div>
+<div class="forms">
+  <input id="input4_1"></input>
+</div>
+<div class="forms">
+  <select id="input4_2">
+    <option>string</option>
+    <option>hash</option>
+    <option>list</option>
+  </select>
+</div>
+<div class="forms">
+	<textarea id="input4_3"></textarea>
+</div>
+<div id="result4" class="result">
+
+</div>
+
+
+
+
+<h1>Test 5 - GET KEY</h1>
+
+<div id="button5" class="button">
+  GET
+</div>
+<div class="forms">
+  <input id="input5_1"></input>
+</div>
+<div id="result5" class="result">
+
+</div>
+
+
+<h1>Test 6 - GET KEYS</h1>
+
+<div id="button6" class="button">
+  GET
+</div>
+<div class="forms">
+  <input id="input6_1"></input>
+</div>
+<div id="result6" class="result">
+
+</div>
+
+
+<h1>Test 7 - DELETE KEY</h1>
+
+<div id="button7" class="button">
+  GET
+</div>
+<div class="forms">
+  <input id="input7_1"></input>
+</div>
+<div id="result7" class="result">
+
+</div>
+
+
+<h1>Test 8 - RENDER KEY</h1>
+
+<div id="button8" class="button">
+  GET
+</div>
+<div class="forms">
+  <input id="input8_1"></input>
+</div>
+<div id="result8" class="result">
+
+</div>
+	
+	
+</body>
+</html>
