@@ -21,29 +21,56 @@
             color:#eee;
         }
 
-        #market {
-            width:400px;
-            height:200px;
-            background-color:#555;
-        }
-        #nav {
+        .col {
+            display:inline-block;
+            vertical-align:top;
             width:400px;
             height:100vh;
+            margin-right:1px;
             background-color:#000;
         }
+
+            .code {
+                padding:10px;
+                font-family:monospace;
+                font-size:10pt;
+            }
+
             .key {
                 padding:10px;
-                border-left: 1px solid #333;
+                border-left:1px solid #222;
                 cursor:pointer;
             }
+                .key.leaf > .key_name {
+                    background-color:#111;
+                }
+                .key_name {
+                    padding:5px;
+                    border:1px solid #222;
+                    border-radius:5px 0px 0px 0px;
+                }
+                .key_descr {
+                    padding:5px;
+                    padding-left:10px;
+                    border-left: 1px solid #222;
+                    border-right:1px solid #222;
+                    font-size:10pt;
+                    color:#999;
+                }
+                .inner {
+                    border-bottom:1px solid #222;
+                    border-right:1px solid #222;
+                }
     </style>
     <script>
     
     $(document).ready(function () {
         var graph = {
             'key-1' : {
+                'value' : '',
                 'meta' : {
-                    'name' : '@KINDARO', 
+                    'name' : '@USERNAME', 
+                    'descr' : 'Cool guy with no name',
                 },
                 'inner' : [
                     'key-2',
@@ -52,9 +79,10 @@
                 'outer' : [],
             },
             'key-2' : {
-                'value' : 'Code of KEY-2',
+                'value' : '',
                 'meta' : {
-                    'name' : 'level-1-1', 
+                    'name' : 'Project X',
+                    'descr' : 'Secret project feat. Google Inc.',
                 },
                 'inner' : [
                     'key-4',
@@ -64,33 +92,50 @@
                 ],
             },
             'key-3' : {
-                'value' : 'Code of KEY-3',
+                'value' : '',
                 'meta' : {
-                    'name' : 'level-1-2', 
+                    'name' : 'Project Y',
+                    'descr' : 'Chinese remake of Project X',
                 },
                 'inner' : [
                     'key-5',
+                    'key-6',
                 ],
                 'outer' : [
                     'key-1',
                 ],
             },
             'key-4' : {
-                'value' : 'Code of KEY-4',
+                'value' : '',
                 'meta' : {
-                    'name' : 'level-2-1', 
+                    'name' : 'Resources',
+                    'descr' : 'Something to reuse',
                 },
                 'inner' : [
                     'key-5',
+                    'key-6',
                 ],
                 'outer' : [
                     'key-2',
                 ],
             },
             'key-5' : {
-                'value' : 'Code of KEY-5',
+                'value' : '<div>Code of vidget A</div>',
                 'meta' : {
-                    'name' : 'level-3-1', 
+                    'name' : 'Vidget A',
+                    'descr' : 'Code fragment',
+                },
+                'inner' : [],
+                'outer' : [
+                    'key-4',
+                    'key-3',
+                ],
+            },
+            'key-6' : {
+                'value' : '<div>Code of vidget B</div>',
+                'meta' : {
+                    'name' : 'Vidget B',
+                    'descr' : 'Another code fragment',
                 },
                 'inner' : [],
                 'outer' : [
@@ -102,13 +147,25 @@
 
 
         function render(key,target) {
-            $(target).append('<div class="key '+key+'"><div class="key_name">'+graph[key]['meta']['name']+'</div><div class="inner"></div></div>');
+            if (graph[key]['inner'].length == 0 && graph[key]['value'] != '') {
+                var leaf = 'leaf';
+            } else {
+                var leaf = '';
+            };
+            $(target).append('<div class="key '+leaf+' '+key+'"><div class="key_name">'+graph[key]['meta']['name']+'</div><div class="key_descr">'+graph[key]['meta']['descr']+'</div><div class="inner"></div></div>');
         };
 
         function explore(node) {
-            var key = $(node).attr('class').substr(4);
-            for (var i=0; i<graph[key]['inner'].length; i++) {
-                render(graph[key]['inner'][i],$(node).children(".inner"));
+            for (key in graph) {
+                if ($(node).hasClass(key) == true) {
+                    if ($(node).hasClass('leaf') == true) {
+                        $("#code").text(graph[key]['value']);
+                    } else {
+                        for (var i=0; i<graph[key]['inner'].length; i++) {
+                            render(graph[key]['inner'][i],$(node).children(".inner"));
+                        };
+                    };
+                };
             };
         };
 
@@ -130,12 +187,15 @@
                 $(this).children(".inner").empty();
             };
         });
+
     });
     </script>
 </head>
 <body>
     <div class="col" id="nav">
 
+    </div><div class="col code" id="code">
+    
     </div>
 </body>
 </html>
