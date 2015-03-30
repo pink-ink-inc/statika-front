@@ -29,13 +29,33 @@
             position:absolute;
             width:150px;
             height:35px;
-            padding-top:15px;
             background-color:#333;
             border:0px solid #333;
             border-radius:3px;
             font-weight:bold;
             text-align:center;
+            overflow:hidden;
         }
+            .node_body {
+                display:inline-block;
+                vertical-align:top;
+                width:120px;
+                padding:15px;
+            }
+                .node_body.highlighted {
+                    background-color:#555;
+                }
+            .children_counter {
+                display:inline-block;
+                vertical-align:top;
+                padding:15px;
+                width:20px;
+                background-color:#222;
+                cursor:pointer;
+            }
+                .children_counter.highlighted {
+                    background-color:#cc9900;
+                }
     </style>
     <script>
     
@@ -61,6 +81,7 @@
                 },
                 'inner' : [
                     'E',
+                    'I',
                 ],
             },
             'C' : {
@@ -71,6 +92,7 @@
                 },
                 'inner' : [
                     'D',
+                    'I',
                 ],
             },
             'E' : {
@@ -140,13 +162,17 @@
 
         var settings = {
             'grid' : {
-                'width' : 150,
+                'width' : 200,
                 'height' : 50,
                 'offset' : 50,
             },
         };
 
         function normalize() {
+            $(".node").css({
+                'width' : settings['grid']['width']+'px',
+                'height' : settings['grid']['height']+'px',
+            });
             var canvasW = 0;
             var canvasH = 0;
             for (uid in hPos) {
@@ -181,7 +207,12 @@
                     '<div class="node" id="',
                     uid,
                     '">',
+                    '<div class="node_body">',
                     uid,
+                    '</div>',
+                    '<div class="children_counter">',
+                    graph[uid]['inner'].length,
+                    '</div>',
                     '</div>',
                 ];
                 node = lts(node);
@@ -300,6 +331,8 @@
             render_node(uid,{'x':hPos[uid]['max'],'y':vPos[uid],});
         };
 
+        normalize();
+
         var canvas = document.getElementById("canvas");
         var c = canvas.getContext("2d");
         for (uid in vPos) {
@@ -307,10 +340,10 @@
         };
         
         $(document).on('mouseenter','.node', function(){
-            $(this).css({ 'backgroundColor' : '#555', });
             for (var i=0; i<graph[$(this).attr("id")]['inner'].length; i++) {
                 var child_uid = graph[$(this).attr("id")]['inner'][i];
-                $("#"+child_uid).css({ 'backgroundColor' : '#cc9900', });
+                $("#"+child_uid).children(".node_body").addClass("highlighted");
+                $(this).children(".children_counter").addClass("highlighted");
             };
             c.clearRect ( 0 , 0 , canvas.width, canvas.height );
             for (uid in vPos) {
@@ -322,10 +355,10 @@
             };
         });
         $(document).on('mouseleave','.node', function(){
-            $(this).css({ 'backgroundColor' : '#333', });
             for (var i=0; i<graph[$(this).attr("id")]['inner'].length; i++) {
                 var child_uid = graph[$(this).attr("id")]['inner'][i];
-                $("#"+child_uid).css({ 'backgroundColor' : '#333', });
+                $("#"+child_uid).children(".node_body").removeClass("highlighted");
+                $(this).children(".children_counter").removeClass("highlighted");
             };
             c.clearRect ( 0 , 0 , canvas.width, canvas.height );
             for (uid in vPos) {
