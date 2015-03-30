@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="windows-1251" />
+    <title>GRAPH DEMO</title>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="jquery.transit.min.js"></script>
+    <script src="jquery.scrollTo-1.4.3.1-min.js"></script>
+    <style>
+        html {
+            margin:0px;
+            padding:0px;
+        }
+        body {
+            margin:0px;
+            padding:0px;
+            background-color:#111;
+            font-family: 'Open Sans', sans-serif;
+            font-size:12pt;
+            color:#eee;
+        }
+
+        #canvas {
+            background-color:#000;
+        }
+
+        .node {
+            position:absolute;
+            width:150px;
+            height:35px;
+            padding-top:15px;
+            background-color:#333;
+            border:0px solid #333;
+            border-radius:3px;
+            font-weight:bold;
+            text-align:center;
+        }
+    </style>
+    <script>
+    
+    $(document).ready(function () {
+        var graph = {
+            'A' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '', 
+                    'descr' : '',
+                },
+                'inner' : [
+                    'B',
+                    'C',
+                    'H',
+                ],
+            },
+            'B' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    'E',
+                ],
+            },
+            'C' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    'D',
+                ],
+            },
+            'E' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    'F',
+                    'D',
+                ],
+            },
+            'D' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    'G',
+                    'H',
+                    'I',
+                ],
+            },
+            'F' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    'G',
+                ],
+            },
+            'G' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    
+                ],
+            },
+            'H' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    
+                ],
+            },
+            'I' : {
+                'value' : '',
+                'meta' : {
+                    'name' : '',
+                    'descr' : '',
+                },
+                'inner' : [
+                    
+                ],
+            },
+        };
+
+        var settings = {
+            'grid' : {
+                'width' : 150,
+                'height' : 50,
+                'offset' : 50,
+            },
+        };
+
+        function normalize() {
+            var canvasW = 0;
+            var canvasH = 0;
+            for (uid in hPos) {
+                if (hPos[uid]['max'] > canvasW) {
+                    canvasW = hPos[uid]['max'];
+                };
+                if (vPos[uid] > canvasH) {
+                    canvasH = vPos[uid];
+                };
+            };
+            canvasW = ((canvasW+1) * (settings['grid']['width']+settings['grid']['offset']))+settings['grid']['offset'];
+            canvasH = ((canvasH+1) * (settings['grid']['height']+settings['grid']['offset']))+settings['grid']['offset'];
+            $("#canvas").attr({
+                'width' : canvasW,
+                'height' : canvasH,
+            });
+        };
+
+
+        function lts(list) {
+            var string = '';
+            for (var i=0; i<list.length; i++) {
+                string = string + list[i];
+            };
+            return string;
+        };
+
+
+        function render_node(uid,coords) {
+            if ($("#"+uid).length == 0) {
+                var node = [
+                    '<div class="node" id="',
+                    uid,
+                    '">',
+                    uid,
+                    '</div>',
+                ];
+                node = lts(node);
+                var left = (coords['x']*(settings['grid']['width']+settings['grid']['offset']))+settings['grid']['offset'];
+                var top = (coords['y']*(settings['grid']['height']+settings['grid']['offset']))+settings['grid']['offset'];
+                $(node).appendTo($("body")).css({ 'left' : left+'px', 'top' : top+'px' });
+            } else {
+                $("#"+uid).css({ 'left' : left+'px', 'top' : top+'px' });
+            };
+        };
+
+        function get_roots() {
+            var nodes = [];
+            var roots = [];
+            for (uid in graph) {
+                nodes.push([uid,true]);
+            };
+            for (uid in graph) {
+                for (var i=0; i<graph[uid]['inner'].length; i++) {
+                    for (var a=0; a<nodes.length; a++) {
+                        if (nodes[a][0] == graph[uid]['inner'][i]) {
+                            nodes[a][1] = false;
+                        };
+                    };
+                };
+            };
+            for (var a=0; a<nodes.length; a++) {
+                if (nodes[a][1] == true) {
+                    roots.push(nodes[a][0]);
+                };
+            };
+            return roots;
+        };
+
+        function hMap(UID) {
+            function explore(uid) {
+                for (var a=0; a<graph[uid]['inner'].length; a++) {
+                    var child_uid = graph[uid]['inner'][a];
+                    if (dist[child_uid] == undefined) {
+                        dist[child_uid] = {};
+                        dist[child_uid]['min'] = dist[uid]['min']+1;
+                        dist[child_uid]['max'] = dist[uid]['max']+1;
+                    } else {
+                        if (dist[uid]['max'] > dist[child_uid]['max']) {
+                            dist[child_uid]['max'] = dist[uid]['max']+1;
+                        };
+                        if (dist[uid]['min'] < dist[child_uid]['min']) {
+                            dist[child_uid]['min'] = dist[uid]['min']+1;
+                        };
+                    };
+                    explore(graph[uid]['inner'][a]);
+                };
+            };
+            var dist = {};
+            for (var a=0; a<roots.length; a++) {
+                dist[roots[a]] = {
+                    'min':0,
+                    'max':0,
+                };
+                explore(roots[a]);
+            };
+            console.log(dist);
+            return dist;
+        };
+        
+        var roots = get_roots();
+        console.log('Roots: '+roots);
+
+        var hPos = hMap();
+        
+        function vMap() {
+            var Pos = {};
+            var x = 0;
+            var nodes = 0;
+            var index = 0;
+            for (uid in hPos) {
+                nodes++;
+            };
+            while (nodes != index) {
+                var y = 0;
+                for (uid in hPos) {
+                    if (hPos[uid]['max'] == x) {
+                        Pos[uid] = y;
+                        y++;
+                        index++;
+                    };
+                };
+                x++;
+            };
+            return Pos;
+        };
+
+        function render_links(uid,color) {
+            var canvas = document.getElementById("canvas");
+            var c = canvas.getContext("2d");
+            var startX = $("#"+uid).offset()['left']+settings['grid']['width'];
+            var startY = $("#"+uid).offset()['top']+(settings['grid']['height']/2);
+            for (var i=0; i<graph[uid]['inner'].length; i++) {
+                var endX = $("#"+graph[uid]['inner'][i]).offset()['left'];
+                var endY = $("#"+graph[uid]['inner'][i]).offset()['top']+(settings['grid']['height']/2);
+                console.log(uid+" - From: "+startX+" "+startY+", to: "+endX+" "+endY);
+                c.beginPath();
+                c.strokeStyle = color;
+                c.lineWidth = 1;
+                c.moveTo(startX,startY);
+                c.lineTo(endX,endY);
+                c.stroke();
+            };
+        };
+
+        var vPos = vMap();
+        
+        normalize();
+
+        for (uid in vPos) {
+            render_node(uid,{'x':hPos[uid]['max'],'y':vPos[uid],});
+        };
+
+        var canvas = document.getElementById("canvas");
+        var c = canvas.getContext("2d");
+        for (uid in vPos) {
+            render_links(uid,'#222222');
+        };
+        
+        $(document).on('mouseenter','.node', function(){
+            $(this).css({ 'backgroundColor' : '#555', });
+            for (var i=0; i<graph[$(this).attr("id")]['inner'].length; i++) {
+                var child_uid = graph[$(this).attr("id")]['inner'][i];
+                $("#"+child_uid).css({ 'backgroundColor' : '#cc9900', });
+            };
+            c.clearRect ( 0 , 0 , canvas.width, canvas.height );
+            for (uid in vPos) {
+                if (uid == $(this).attr('id')) {
+                    render_links(uid,'#cc9900'); 
+                } else {
+                    render_links(uid,'#222222');
+                };
+            };
+        });
+        $(document).on('mouseleave','.node', function(){
+            $(this).css({ 'backgroundColor' : '#333', });
+            for (var i=0; i<graph[$(this).attr("id")]['inner'].length; i++) {
+                var child_uid = graph[$(this).attr("id")]['inner'][i];
+                $("#"+child_uid).css({ 'backgroundColor' : '#333', });
+            };
+            c.clearRect ( 0 , 0 , canvas.width, canvas.height );
+            for (uid in vPos) {
+                render_links(uid,'#222222'); 
+            };
+        });
+
+
+    });
+    </script>
+</head>
+<body>
+    <canvas id="canvas" width=1200 height=800>
+
+    </canvas>
+</body>
+</html>
