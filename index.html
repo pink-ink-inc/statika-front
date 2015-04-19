@@ -167,8 +167,8 @@
                 'nodeW' : 200,
                 'nodeH' : 30,
                 'lineY' : 15,
-                'x' : 400,
-                'y' : 300,
+                'x' : 200,
+                'y' : 100,
                 'offsetX' : 50,
                 'offsetY' : 50,
             },
@@ -228,11 +228,10 @@
                 };
             };
             var roots = getRoots(g);
-            console.log("Roots: " + roots);
             for (var i=0; i<roots.length; i++) {
-                g[i]['map'] = {};
-                g[i]['map']['x'] = 0;
-                rcrs(i);
+                g[roots[i]]['map'] = {};
+                g[roots[i]]['map']['x'] = 0;
+                rcrs(roots[i]);
             };
             var n = 0;
             var x = 0;
@@ -250,6 +249,8 @@
                 };
                 x++;
             };
+            console.log('Attention');
+            console.log(g);
             console.log(size);
             return size;
         };
@@ -257,111 +258,156 @@
         function render(g) {
         //Mapping graph
             var size = map(g);
+            console.log(size);
             console.log(GRAPH);
-        //Adding SVG
-            var svg = d3.select('body')
-                            .append('svg')
-                            .attr('width', window.innerWidth)
-                            .attr('height', window.innerHeight);
-        //Drag function
-            var drag = d3.behavior.drag()
-                    .origin(function() { 
-                            var t = d3.select(this);
-                            return {
-                                x: rmun(t.style("left")),
-                                y: rmun(t.style("top")),
+        //DOM init
+            //Adding SVG
+                if (d3.select('#svg').size() == 0) {
+                    var svg = d3.select('body')
+                                .append('svg')
+                                .attr('id', 'svg');
+                    var draggable = svg.append('g')
+                                .attr('class', 'draggable')
+                                .attr('transform', function(d) { return 'translate(0,0)'; });
+                } else {
+                    var svg = d3.select('#svg');
+                    var draggable = d3.select('#svg').select('g');
+                };
+                svg.attr('width', window.innerWidth)
+                    .attr('height', window.innerHeight);
+            //Drag function
+                var drag = d3.behavior.drag()
+                        .origin(function() { 
+                                var t = d3.select(this);
+                                return {
+                                    x: rmun(t.style("left")),
+                                    y: rmun(t.style("top")),
+                                };
+                        })
+                        .on("drag", function(d,i) {
+                            var X = d3.event.x;
+                            var Y = d3.event.y;
+                            if (X > 0) {
+                                X = 0;
+                            } else if (X < window.innerWidth-rmun(absolute.style('width'))) {
+                                X = window.innerWidth-rmun(absolute.style('width'));
                             };
+                            if (Y > 0) {
+                                Y = 0;
+                            } else if (Y < window.innerHeight-rmun(absolute.style('height'))) {
+                                Y = window.innerHeight-rmun(absolute.style('height'));
+                            };
+                            d3.select(this).style("left", function(d,i){
+                                return X+'px';
+                            });
+                            d3.select(this).style("top", function(d,i){
+                                return Y+'px';
+                            });
+                            draggable.attr("transform", function(d,i){
+                                return "translate(" + [ X,Y ] + ")";
+                            });
+                        });
+            //Adding node layout
+                if (d3.select('#nodes').size() == 0) {
+                    var absolute = d3.select('body')
+                                .append('div')
+                                .attr('id', 'nodes')
+                                .attr('class', 'absolute');
+                } else {
+                    var absolute = d3.select('#nodes');
+                };
+                absolute
+                    .style('width', function() {
+                            var val = (s['grid']['x']*size.x)+(s['grid']['nodeW']*(size.x+1))+(s['grid']['offsetX']*2);
+                            if (val < window.innerWidth) {
+                                val = window.innerWidth;
+                            };
+                            return val+'px';
                     })
-                    .on("drag", function(d,i) {
-                        var X = d3.event.x;
-                        var Y = d3.event.y;
-                        if (X > 0) {
-                            X = 0;
-                        } else if (X < window.innerWidth-rmun(absolute.style('width'))) {
-                            X = window.innerWidth-rmun(absolute.style('width'));
-                        };
-                        if (Y > 0) {
-                            Y = 0;
-                        } else if (Y < window.innerHeight-rmun(absolute.style('height'))) {
-                            Y = window.innerHeight-rmun(absolute.style('height'));
-                        };
-                        d3.select(this).style("left", function(d,i){
-                            return X+'px';
-                        });
-                        d3.select(this).style("top", function(d,i){
-                            return Y+'px';
-                        });
-                        draggable.attr("transform", function(d,i){
-                            return "translate(" + [ X,Y ] + ")";
-                        });
-                    });
-        //Adding draggable SVG layout
-            var draggable = svg.append('g')
-                            .attr('class', 'draggable')
-                            .attr('transform', function(d) { return 'translate(0,0)'; });
-        //Adding node layout
-            var absolute = d3.select('body')
-                            .append('div')
-                            .attr('class', 'absolute')
-                            .style('width', function() {
-                                var val = (s['grid']['x']*size.x)+(s['grid']['nodeW']*(size.x+1))+(s['grid']['offsetX']*2);
-                                if (val < window.innerWidth) {
-                                    val = window.innerWidth;
-                                };
-                                return val+'px';
-                            })
-                            .style('height', function() {
-                                var val = (s['grid']['y']*size.y)+(s['grid']['offsetY']*2)+s['grid']['lineY'];
-                                if (val < window.innerHeight) {
-                                    val = window.innerHeight;
-                                };
-                                return val+'px';
-                            })
-                            .call(drag);
+                    .style('height', function() {
+                            var val = (s['grid']['y']*size.y)+(s['grid']['offsetY']*2)+s['grid']['lineY'];
+                            if (val < window.innerHeight) {
+                                val = window.innerHeight;
+                            };
+                            return val+'px';
+                    })
+                    .call(drag);
         //Configuring SVG <path d> function
-            function svgPath(x1,y1,x2,y2) {
+            function svgPath(coords) {
                 var offsetX = s['grid']['offsetX'];
                 var offsetY = s['grid']['offsetY'];
                 var x = s['grid']['x'];
                 var y = s['grid']['y'];
                 var lineY = s['grid']['lineY'];
                 var nodeW = s['grid']['nodeW'];
+                var x1 = coords['x1'],
+                    y1 = coords['y1'],
+                    x2 = coords['x2'],
+                    y2 = coords['y2'];
                 return 'M '+((x*x1)+(nodeW*(x1+1))+offsetX)+' '+((y*y1)+offsetY+lineY)+' L '+((x*x2)+(nodeW*x2)+offsetX)+' '+((y*y2)+offsetY+lineY)+' Z';
             };
-        //Drawing lines
+        //Lines data
+            var lines_data = [];
             for (var a=0; a<g.length; a++) {
                 for (var b=0; b<g[a]['inner'].length; b++) {
-                    var pathID = g[a]['uid']+g[a]['inner'][b];
-                    if (d3.select('#'+pathID).size() == 0) { //If the path doesn't exist
-                        draggable.append('path')
-                            .attr('id', function() {
-                                return pathID;
-                            })
-                            .attr('d', function() {
-                                return svgPath(g[a]['map']['x'],g[a]['map']['y'],g[uidToIndex(g,g[a]['inner'][b])]['map']['x'],g[uidToIndex(g,g[a]['inner'][b])]['map']['y']);
-                            })
-                            .attr('fill', 'none')
-                            .attr('stroke', function() { return s['svg-lines']['color'] })
-                            .attr('stroke-width', function() { return s['svg-lines']['width'] });
-                    } else { //If the path exists
-                        d3.select('#'+pathID)
-                            .attr('d', function() {
-                                return svgPath(g[a]['map']['x'],g[a]['map']['y'],g[uidToIndex(g,g[a]['inner'][b])]['map']['x'],g[uidToIndex(g,g[a]['inner'][b])]['map']['y']);
-                            });
-                    };
+                    lines_data.push({
+                        'uid' : g[a]['uid']+g[a]['inner'][b],
+                        'coords' : {
+                            'x1' : g[a]['map']['x'],
+                            'y1' : g[a]['map']['y'],
+                            'x2' : g[uidToIndex(g,g[a]['inner'][b])]['map']['x'],
+                            'y2' : g[uidToIndex(g,g[a]['inner'][b])]['map']['y'],
+                        },
+                    });
                 };
             };
+        //Drawing lines
+            //Join
+            var lines = draggable.selectAll('path')
+                .data(lines_data, function(d) { return d['uid']; });
+            //Update
+            lines
+                .transition()
+                .attr('d', function(d) {
+                    return svgPath(d['coords']);
+                });
+            //Enter
+            lines.enter().append('path')
+                    .attr('id', function(d) {
+                        return d['uid'];
+                    })
+                    .attr('fill', 'none')
+                    .attr('stroke', function() { return s['svg-lines']['color'] })
+                    .attr('stroke-width', function() { return s['svg-lines']['width'] })
+                    .attr('d', function(d) {
+                        return svgPath(d['coords']);
+                    });
+            //Exit
+            lines.exit().remove();
         //Adding nodes
-            var nodes = absolute.selectAll('div')
-                .data(g)
-            .enter().append('div')
-                .attr('id', function(d) { return d['uid'] })
-                .attr('class', 'zero')
+            //Join
+            var nodes = absolute.selectAll('div.zero')
+                .data(g, function(d) { return d['uid']; });
+            //Update
+            nodes
+                .transition()
                 .style('left', function(d) { 
                     return ((d['map']['x']*s['grid']['x'])+(d['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
                 })
-                .style('top', function(d) { return ((d['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' })
-                .html('<div class="test"></div>');
+                .style('top', function(d) { return ((d['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' });
+            //Enter
+            nodes.enter().append('div')
+                .attr('id', function(d) { return d['uid'] })
+                .attr('class', 'zero')
+                .html(function(d) { return '<div class="test">'+d['uid']+'</div>' })
+                .style('left', function(d) {
+                    return ((d['map']['x']*s['grid']['x'])+(d['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
+                })
+                .style('top', function(d) { return ((d['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' });
+            //Enter + Update
+
+            //Exit
+            nodes.exit().remove();
         //Remove mapping from graph
             for (var i=0; i<g.length; i++) {
                 delete g[i]['map'];
