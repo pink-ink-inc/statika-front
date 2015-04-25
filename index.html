@@ -35,128 +35,460 @@
                 height: 0px;
                 overflow: visible;
             }
-            .test {
+
+            .root {
+                width: 200px;
+                height: 30px;
+                background-color: blue;
+            }
+            .branch {
                 width: 200px;
                 height: 30px;
                 background-color: steelblue;
             }
-                .selected > .test {
+                .selected {
                     background-color: brown;
                 }
-
+            .leaf {
+                width: 200px;
+                height: 30px;
+                background-color: orange;
+            }
+                .minus {
+                    display: inline;
+                    background-color: #fff;
+                }
     </style>
     <script type="text/javascript">
-        var GRAPH = [
-            {
-                'uid' : 'A',
-                'value' : '',
-                'meta' : {
-                    'name' : '', 
-                    'descr' : '',
+    //Global methods
+        function getIndex(array, value) {
+            var index = -1;
+            for (var a=0; a<array.length; a++) {
+                if (array[a] == value) {
+                    index = a;
+                };
+            };
+            return index;
+        };
+        function rmun(val) {
+            return parseInt(val.slice(0,-2));
+        };
+    //From North
+        var input = [
+                {
+                    'uid' : 'A',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '', 
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'B',
+                        'C',
+                        'H',
+                    ],
                 },
-                'inner' : [
-                    'B',
-                    'C',
-                    'H',
-                ],
-            },
-            {
-                'uid' : 'B',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'B',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'E',
+                        'I',
+                    ],
                 },
-                'inner' : [
-                    'E',
-                    'I',
-                ],
-            },
-            {
-                'uid' : 'C',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'C',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'D',
+                        'I',
+                    ],
                 },
-                'inner' : [
-                    'D',
-                    'I',
-                ],
-            },
-            {
-                'uid' : 'E',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'E',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'F',
+                        'D',
+                    ],
                 },
-                'inner' : [
-                    'F',
-                    'D',
-                ],
-            },
-            {
-                'uid' : 'D',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'D',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'G',
+                        'H',
+                        'I',
+                    ],
                 },
-                'inner' : [
-                    'G',
-                    'H',
-                    'I',
-                ],
-            },
-            {
-                'uid' : 'F',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'F',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        'G',
+                    ],
                 },
-                'inner' : [
-                    'G',
-                ],
-            },
-            {
-                'uid' : 'G',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'G',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        
+                    ],
                 },
-                'inner' : [
-                    
-                ],
-            },
-            {
-                'uid' : 'H',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'H',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        
+                    ],
                 },
-                'inner' : [
-                    
-                ],
-            },
-            {
-                'uid' : 'I',
-                'value' : '',
-                'meta' : {
-                    'name' : '',
-                    'descr' : '',
+                {
+                    'uid' : 'I',
+                    'value' : '',
+                    'meta' : {
+                        'name' : '',
+                        'descr' : '',
+                    },
+                    'inner' : [
+                        
+                    ],
                 },
-                'inner' : [
-                    
-                ],
-            },
         ];
+    //Constructors
+        function initNode(node) {
+            this.uid = node['uid'];
+            this.value = node['value'];
+            this.meta = node['meta'];
+            this.inner = node['inner'];
+        };
+        initNode.prototype = {
+            addChild : function (uid) {
+                this['inner'].push(uid);
+            },
+            rmChild : function (uid) {
+                var index = getIndex(this['inner'],uid);
+                this['inner'].splice(index,1);
+            },
+            status : function () {
+                var status;
+                if (this['inner'].length == 0) {
+                    status = 'leaf';
+                } else {
+                    var roots = graph.getRoots();
+                    if (getIndex(roots,this['uid']) == -1) {
+                        status = 'branch';
+                    } else {
+                        status = 'root';
+                    };
+                };
+                return status;
+            },
+        };
 
-        var graph = [];
-
+        function initGraph(list) {
+            this.nodes = [];
+            for (var a=0; a<list.length; a++) {
+                this.addNode(list[a]);
+            };
+        };
+        initGraph.prototype = {
+            'uidToIndex' : function (uid) {
+                var index = -1;
+                for (var i=0; i<this.nodes.length; i++) {
+                    if (this['nodes'][i]['uid'] == uid) {
+                        index = i;
+                    };
+                };
+                return index;
+            },
+            'addNode' : function (node) {
+                var inst = new initNode(node);
+                this['nodes'].push(inst);
+            },
+            'rmNode' : function (uid) {
+                //Remove node
+                var index = this.uidToIndex(uid);
+                if (index != -1) {
+                    this['nodes'].splice(index,1);
+                };
+                //Remove links
+                for (var a=0; a<this['nodes'].length; a++) {
+                    index = getIndex(this['nodes'][a]['inner'],uid);
+                    this['nodes'][a]['inner'].splice(index,1);
+                };
+            },
+            'getRoots' : function () {
+                var roots = [];
+                for (var a=0; a<this['nodes'].length; a++) {
+                    var uid = this['nodes'][a]['uid'];
+                    var check = true;
+                    for (var b=0; b<this['nodes'].length; b++) {
+                        var index = getIndex(this['nodes'][b]['inner'],uid)
+                        if (index != -1) {
+                            check = false;
+                        };
+                    };
+                    if (check == true) {
+                        roots.push(uid);
+                    };
+                };
+                return roots;
+            },
+            'getNode' : function (uid, prop) {
+                if (prop == undefined) {
+                    return this['nodes'][uidToIndex(uid)];
+                } else {
+                    return this['nodes'][uidToIndex(uid)][prop];
+                };
+            },
+            'getNodeStatus' : function (uid) {
+                var status = '';
+                if (this.getNode(uid,'inner').length == 0) {
+                    status = 'leaf';
+                } else {
+                    var roots = this.getRoots();
+                    if (getIndex(roots,uid) == -1) {
+                        status = 'branch';
+                    } else {
+                        status = 'root';
+                    };
+                };
+                return status;
+            },
+            'renderSize' : {
+                'x' : 0,
+                'y' : 0,
+            },
+            'render' : function () {
+                var t = this;
+                //Mapping & counting render size
+                    function rcrs(index) {
+                        var parent = t['nodes'][index];
+                        for (var a=0; a<parent['inner'].length; a++) {
+                            var childIndex = t.uidToIndex(parent['inner'][a]);
+                            var child = t['nodes'][childIndex];
+                            if (childIndex != -1) {
+                                if (child['meta']['map'] == undefined) {
+                                    child['meta']['map'] = {
+                                        'x' : 0,
+                                        'y' : 0,
+                                    };
+                                };
+                                if (parent['meta']['map']['x'] >= child['meta']['map']['x']) {
+                                    child['meta']['map']['x'] = parent['meta']['map']['x'] + 1;
+                                };
+                                if (parent['meta']['map']['x']+1 > t.renderSize.x) {
+                                    t.renderSize.x = parent['meta']['map']['x'] + 1;
+                                };
+                                rcrs(childIndex);
+                            }; //If link is invalid - ... ?
+                        };
+                    };
+                    var roots = t.getRoots();
+                    for (var a=0; a<roots.length; a++) {
+                        var index = t.uidToIndex(roots[a]);
+                        if (t['nodes'][index]['meta']['map'] == undefined) {
+                            t['nodes'][index]['meta']['map'] = {
+                                'x' : 0,
+                                'y' : 0,
+                            };
+                        };
+                        t['nodes'][index]['meta']['map']['x'] = 0;
+                        rcrs(index);
+                    };
+                    var n = 0;
+                    var x = 0;
+                    while (n < t['nodes'].length) {
+                        var y = 0;
+                        for (var i=0; i<t['nodes'].length; i++) {
+                            if (t['nodes'][i]['meta']['map']['x'] == x) {
+                                t['nodes'][i]['meta']['map']['y'] = y;
+                                y++;
+                                n++;
+                                if (t['nodes'][i]['meta']['map']['y'] > t.renderSize.y) {
+                                    t.renderSize.y = t['nodes'][i]['meta']['map']['y'];
+                                };
+                            };
+                        };
+                       x++;
+                    };
+                    console.log(t['nodes']);
+                //DOM init
+                    //SVG
+                        if (d3.select('#svg').empty() == true) {
+                            var svg = d3.select('body')
+                                        .append('svg')
+                                        .attr('id', 'svg');
+                            var draggable = svg.append('g')
+                                        .attr('class', 'draggable')
+                                        .attr('transform', function(d) { return 'translate(0,0)'; });
+                        } else {
+                            var svg = d3.select('#svg');
+                            var draggable = d3.select('#svg').select('g');
+                        };
+                        svg.attr('width', window.innerWidth)
+                            .attr('height', window.innerHeight);
+                    //Drag function
+                        var drag = d3.behavior.drag()
+                            .origin(function() { 
+                                    return {
+                                        x: rmun(d3.select(this).style("left")),
+                                        y: rmun(d3.select(this).style("top")),
+                                    };
+                            })
+                            .on("drag", function(d,i) {
+                                var X = d3.event.x;
+                                var Y = d3.event.y;
+                                if (X > 0) {
+                                    X = 0;
+                                } else if (X < window.innerWidth-rmun(absolute.style('width'))) {
+                                    X = window.innerWidth-rmun(absolute.style('width'));
+                                };
+                                if (Y > 0) {
+                                    Y = 0;
+                                } else if (Y < window.innerHeight-rmun(absolute.style('height'))) {
+                                    Y = window.innerHeight-rmun(absolute.style('height'));
+                                };
+                                d3.select(this).style("left", function(d,i){
+                                    return X+'px';
+                                });
+                                d3.select(this).style("top", function(d,i){
+                                    return Y+'px';
+                                });
+                                draggable.attr("transform", function(d,i){
+                                    return "translate(" + [X,Y] + ")";
+                                });
+                            });
+                    //Node layer
+                        var size = t.renderSize;
+                        if (d3.select('#nodes').empty() == true) {
+                            var absolute = d3.select('body')
+                                        .append('div')
+                                        .attr('id', 'nodes')
+                                        .attr('class', 'absolute');
+                        } else {
+                            var absolute = d3.select('#nodes');
+                        };
+                        absolute
+                            .style('width', function() {
+                                    var val = (s['grid']['x']*size.x)+(s['grid']['nodeW']*(size.x+1))+(s['grid']['offsetX']*2);
+                                    if (val < window.innerWidth) {
+                                        val = window.innerWidth;
+                                    };
+                                    return val+'px';
+                            })
+                            .style('height', function() {
+                                    var val = (s['grid']['y']*size.y)+(s['grid']['offsetY']*2)+s['grid']['lineY'];
+                                    if (val < window.innerHeight) {
+                                        val = window.innerHeight;
+                                    };
+                                    return val+'px';
+                            })
+                            .call(drag);
+                //Lines
+                    //Extract data
+                        var lines_list = [];
+                        for (var a=0; a<this['nodes'].length; a++) {
+                            for (var b=0; b<this['nodes'][a]['inner'].length; b++) {
+                                var index = this.uidToIndex(this['nodes'][a]['inner'][b]);
+                                if (index != -1) {
+                                    lines_list.push({
+                                        'uid' : this['nodes'][a]['uid']+this['nodes'][a]['inner'][b],
+                                        'coords' : {
+                                            'x1' : this['nodes'][a]['meta']['map']['x'],
+                                            'y1' : this['nodes'][a]['meta']['map']['y'],
+                                            'x2' : this['nodes'][index]['meta']['map']['x'],
+                                            'y2' : this['nodes'][index]['meta']['map']['y'],
+                                        },
+                                    });
+                                };
+                            };
+                        };
+                    //Draw
+                        //Join
+                        var lines = draggable.selectAll('path')
+                            .data(lines_list, function(d) { return d['uid']; });
+                        //Update
+                        lines
+                            .transition()
+                            .duration(500)
+                            .attr('d', function(d) {
+                                return s['svgPath'](d['coords']);
+                            });
+                        //Enter
+                        lines.enter().append('path')
+                                .attr('id', function(d) {
+                                    return d['uid'];
+                                })
+                                .attr('fill', 'none')
+                                .attr('stroke', function() { return s['svg-lines']['color'] })
+                                .attr('stroke-width', function() { return s['svg-lines']['width'] })
+                                .attr('d', function(d) {
+                                    return s['svgPath'](d['coords']);
+                                });
+                        //Exit
+                        lines.exit().remove();
+                //Nodes
+                    //Join
+                    var nodes = absolute.selectAll('div.zero')
+                        .data(this['nodes'], function(d) { return d['uid']; });
+                    //Update
+                    nodes
+                        .transition()
+                        .duration(500)
+                        .style('left', function(d) { 
+                            return ((d['meta']['map']['x']*s['grid']['x'])+(d['meta']['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
+                        })
+                        .style('top', function(d) { return ((d['meta']['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' });
+                    //Enter
+                    nodes.enter().append('div')
+                        .attr('id', function(d) { return d['uid'] })
+                        .attr('class', 'zero')
+                        .style('left', function(d) {
+                            return ((d['meta']['map']['x']*s['grid']['x'])+(d['meta']['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
+                        })
+                        .style('top', function(d) { return ((d['meta']['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' });
+                    //Enter + Update
+                    nodes.each(function(d, i){ s['templ']['node'](d,i) });
+                    //Exit
+                    nodes.exit().remove();
+                //Unmapping
+                    for (var a=0; a<this['nodes'].length; a++) {
+                        delete this['nodes'][a]['map'];
+                    };
+                    this.renderSize.x = 0;
+                    this.renderSize.y = 0;
+            },
+        };
+    //Settings
         var s = {
             'general' : {
                 'background' : '#fff',
@@ -174,84 +506,46 @@
                 'offsetX' : 50,
                 'offsetY' : 50,
             },
+            'svgPath' : function (coords) {
+                var offsetX = s['grid']['offsetX'],
+                    offsetY = s['grid']['offsetY'],
+                    x = s['grid']['x'],
+                    y = s['grid']['y'],
+                    lineY = s['grid']['lineY'],
+                    nodeW = s['grid']['nodeW'],
+                    x1 = coords['x1'],
+                    y1 = coords['y1'],
+                    x2 = coords['x2'],
+                    y2 = coords['y2'];
+                return 'M '+((x*x1)+(nodeW*(x1+1))+offsetX)+' '+((y*y1)+offsetY+lineY)+' L '+((x*x2)+(nodeW*x2)+offsetX)+' '+((y*y2)+offsetY+lineY)+' Z';
+            },
             'templ' : {
-                'node' : function (d, i) {
-                    d3.select('#'+d['uid'])
+                'node' : function (d,i) {
+                    d.status();
+                    var T = d3.select('#'+d['uid']);
+                    var type = d.status();
+                    var n = T
+                        .html('')
                         .append('div')
-                            .classed('test', true)
+                            .classed(type, true);
+                    if (type == 'root' || type == 'branch') {
+                        n
+                            .text(d['uid'])
+                            .on('click', function () {
+                                d3.event.stopPropagation();
+                                
+                            });
+                    } else if (type == 'leaf') {
+                        n
                             .text(d['uid']);
-                },
-            },
-            'events' : {
-                'node' : {
-                    'click' : function (d, i, obj) {
-                        if (obj.classed('selected') == false) {
-                            obj.classed('selected', true);
-                            graph = [];
-                            graph.push(GRAPH[uidToIndex(GRAPH, d['uid'])]);
-                            var children = getChildren(GRAPH, d['uid']);
-                            for (var a=0; a<children.length; a++) {
-                                var index = uidToIndex(GRAPH, children[a]);
-                                graph.push({
-                                    'uid' : GRAPH[index]['uid'],
-                                    'value' : GRAPH[index]['value'],
-                                    'meta' : GRAPH[index]['meta'],
-                                    'inner' : [],
-                                });
-                            };
-                            render();
-                            dragTo(obj);
-                        } else {
-                            obj.classed('selected', false);
-                            graph = GRAPH;
-                            render();
-                            setTimeout( function() {dragTo(obj)}, 500);
-                        };
-                    },
-                },
-            },
-        };
-
-        function getRoots(g) {
-            var roots = [];
-            for (var i=0; i<g.length; i++) {
-                var check = true;
-                for (var a=0; a<g.length; a++) {
-                    if (g[a]['inner'].indexOf(g[i]['uid']) != -1) {
-                        check = false;
                     };
-                };
-                if (check == true) {
-                    roots.push(i);
-                };
-            };
-            return roots;
+                },
+            },
         };
-
-        function getChildren(g,uid) {
-            for (var a=0; a<g.length; a++) {
-                if (g[a]['uid'] == uid) {
-                    return g[a]['inner'];
-                };
-            };
-        };
-
-        function uidToIndex(g,uid) {
-            var index = -1;
-            for (var i=0; i<g.length; i++) {
-                if (g[i]['uid'] == uid) {
-                    index = i;
-                };
-            };
-            return index;
-        };
-
-        function rmun(val) {
-            val = parseInt(val.slice(0,-2));
-            return val;
-        };
-
+    
+    //DragTo function needs to be improved before usage
         function dragTo(node) {
+            console.log(node.style('left'));
             var x = -rmun(node.style('left'))+s['grid']['offsetX'];
             var y = -rmun(node.style('top'))+s['grid']['offsetY'];
             var ab = d3.select('.absolute');
@@ -280,222 +574,13 @@
                         return "translate(" + [x,y] + ")";
                     });
         };
-
-        function map(g) {
-            var size = {
-                'x' : 0,
-                'y' : 0,
-            };
-            function rcrs(i) {
-                for (var a=0; a<g[i]['inner'].length; a++) {
-                    var child = uidToIndex(g,g[i]['inner'][a]);
-                    if (child != -1) {
-                        if (g[child]['map'] == undefined) {
-                            g[child]['map'] = {};
-                            g[child]['map']['x'] = g[i]['map']['x'] + 1;
-                        } else {
-                            if (g[i]['map']['x'] >= g[child]['map']['x']) {
-                                g[child]['map']['x'] = g[i]['map']['x'] + 1;
-                            };
-                        };
-                        if ((g[i]['map']['x']+1) > size.x) {
-                            size.x = g[i]['map']['x']+1;
-                        };
-                        rcrs(child);
-                    };
-                };
-            };
-            var roots = getRoots(g);
-            for (var i=0; i<roots.length; i++) {
-                g[roots[i]]['map'] = {};
-                g[roots[i]]['map']['x'] = 0;
-                rcrs(roots[i]);
-            };
-            var n = 0;
-            var x = 0;
-            while (n < g.length) {
-                var y = 0;
-                for (var i=0; i<g.length; i++) {
-                    if (g[i]['map']['x'] == x) {
-                        g[i]['map']['y'] = y;
-                        y++;
-                        n++;
-                        if (g[i]['map']['y'] > size.y) {
-                            size.y = g[i]['map']['y'];
-                        };
-                    };
-                };
-                x++;
-            };
-            return size;
-        };
-
-        function render() {
-        //Mapping graph
-            var size = map(graph);
-        //DOM init
-            //Adding SVG
-                if (d3.select('#svg').size() == 0) {
-                    var svg = d3.select('body')
-                                .append('svg')
-                                .attr('id', 'svg');
-                    var draggable = svg.append('g')
-                                .attr('class', 'draggable')
-                                .attr('transform', function(d) { return 'translate(0,0)'; });
-                } else {
-                    var svg = d3.select('#svg');
-                    var draggable = d3.select('#svg').select('g');
-                };
-                svg.attr('width', window.innerWidth)
-                    .attr('height', window.innerHeight);
-            //Drag function
-                var drag = d3.behavior.drag()
-                        .origin(function() { 
-                                return {
-                                    x: rmun(d3.select(this).style("left")),
-                                    y: rmun(d3.select(this).style("top")),
-                                };
-                        })
-                        .on("drag", function(d,i) {
-                            var X = d3.event.x;
-                            var Y = d3.event.y;
-                            if (X > 0) {
-                                X = 0;
-                            } else if (X < window.innerWidth-rmun(absolute.style('width'))) {
-                                X = window.innerWidth-rmun(absolute.style('width'));
-                            };
-                            if (Y > 0) {
-                                Y = 0;
-                            } else if (Y < window.innerHeight-rmun(absolute.style('height'))) {
-                                Y = window.innerHeight-rmun(absolute.style('height'));
-                            };
-                            d3.select(this).style("left", function(d,i){
-                                return X+'px';
-                            });
-                            d3.select(this).style("top", function(d,i){
-                                return Y+'px';
-                            });
-                            draggable.attr("transform", function(d,i){
-                                return "translate(" + [X,Y] + ")";
-                            });
-                        });
-            //Adding node layout
-                if (d3.select('#nodes').size() == 0) {
-                    var absolute = d3.select('body')
-                                .append('div')
-                                .attr('id', 'nodes')
-                                .attr('class', 'absolute');
-                } else {
-                    var absolute = d3.select('#nodes');
-                };
-                absolute
-                    .style('width', function() {
-                            var val = (s['grid']['x']*size.x)+(s['grid']['nodeW']*(size.x+1))+(s['grid']['offsetX']*2);
-                            if (val < window.innerWidth) {
-                                val = window.innerWidth;
-                            };
-                            return val+'px';
-                    })
-                    .style('height', function() {
-                            var val = (s['grid']['y']*size.y)+(s['grid']['offsetY']*2)+s['grid']['lineY'];
-                            if (val < window.innerHeight) {
-                                val = window.innerHeight;
-                            };
-                            return val+'px';
-                    })
-                    .call(drag);
-        //Configuring SVG <path d> function
-            function svgPath(coords) {
-                var offsetX = s['grid']['offsetX'],
-                    offsetY = s['grid']['offsetY'],
-                    x = s['grid']['x'],
-                    y = s['grid']['y'],
-                    lineY = s['grid']['lineY'],
-                    nodeW = s['grid']['nodeW'],
-                    x1 = coords['x1'],
-                    y1 = coords['y1'],
-                    x2 = coords['x2'],
-                    y2 = coords['y2'];
-                return 'M '+((x*x1)+(nodeW*(x1+1))+offsetX)+' '+((y*y1)+offsetY+lineY)+' L '+((x*x2)+(nodeW*x2)+offsetX)+' '+((y*y2)+offsetY+lineY)+' Z';
-            };
-        //Lines data
-            var lines_data = [];
-            for (var a=0; a<graph.length; a++) {
-                for (var b=0; b<graph[a]['inner'].length; b++) {
-                    if (uidToIndex(graph, graph[a]['inner'][b]) != -1) {
-                        lines_data.push({
-                            'uid' : graph[a]['uid']+graph[a]['inner'][b],
-                            'coords' : {
-                                'x1' : graph[a]['map']['x'],
-                                'y1' : graph[a]['map']['y'],
-                                'x2' : graph[uidToIndex(graph,graph[a]['inner'][b])]['map']['x'],
-                                'y2' : graph[uidToIndex(graph,graph[a]['inner'][b])]['map']['y'],
-                            },
-                        });
-                    };
-                };
-            };
-        //Drawing lines
-            //Join
-            var lines = draggable.selectAll('path')
-                .data(lines_data, function(d) { return d['uid']; });
-            //Update
-            lines
-                .transition()
-                .duration(500)
-                .attr('d', function(d) {
-                    return svgPath(d['coords']);
-                });
-            //Enter
-            lines.enter().append('path')
-                    .attr('id', function(d) {
-                        return d['uid'];
-                    })
-                    .attr('fill', 'none')
-                    .attr('stroke', function() { return s['svg-lines']['color'] })
-                    .attr('stroke-width', function() { return s['svg-lines']['width'] })
-                    .attr('d', function(d) {
-                        return svgPath(d['coords']);
-                    });
-            //Exit
-            lines.exit().remove();
-        //Adding nodes
-            //Join
-            var nodes = absolute.selectAll('div.zero')
-                .data(graph, function(d) { return d['uid']; });
-            //Update
-            nodes
-                .transition()
-                .duration(500)
-                .style('left', function(d) { 
-                    return ((d['map']['x']*s['grid']['x'])+(d['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
-                })
-                .style('top', function(d) { return ((d['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' });
-            //Enter
-            nodes.enter().append('div')
-                .attr('id', function(d) { return d['uid'] })
-                .attr('class', 'zero')
-                .each(function(d, i){ s['templ']['node'](d,i) })
-                .style('left', function(d) {
-                    return ((d['map']['x']*s['grid']['x'])+(d['map']['x']*s['grid']['nodeW'])+s['grid']['offsetX'])+'px';
-                })
-                .style('top', function(d) { return ((d['map']['y']*s['grid']['y'])+s['grid']['offsetY'])+'px' })
-                .on('click', function (d, i) {
-                    return s['events']['node']['click'](d,i,d3.select(this));
-                });
-            //Exit
-            nodes.exit().remove();
-        //Remove mapping from graph
-            for (var i=0; i<graph.length; i++) {
-                delete graph[i]['map'];
-            };
-        };
     </script>
 </head>
 <body>
     <script>
-        graph = GRAPH;
-        render();
+        var GRAPH = new initGraph(input);
+        var graph = new initGraph(input);
+        graph.render();
     </script>
 </body>
 </html>
